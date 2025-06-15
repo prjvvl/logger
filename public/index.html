@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logger Dashboard</title>
+    <link rel="stylesheet" href="style-simple.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+</head>
+<body>
+    <div class="container">        <header>
+            <h1>Logger Dashboard</h1>
+        </header>
+        
+        <div class="controls">
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="sourceFilter">Source:</label>
+                    <select id="sourceFilter">
+                        <option value="">All Sources</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="levelFilter">Level:</label>
+                    <select id="levelFilter">
+                        <option value="">All Levels</option>
+                        <option value="error">Error</option>
+                        <option value="warning">Warning</option>
+                        <option value="info">Info</option>
+                        <option value="debug">Debug</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="actionFilter">Action:</label>
+                    <select id="actionFilter">
+                        <option value="">All Actions</option>
+                        <option value="null">Regular</option>
+                        <option value="alert">Alert</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="groupFilter">Group:</label>
+                    <select id="groupFilter">
+                        <option value="">All Groups</option>
+                    </select>                </div>
+                
+                <div class="filter-group">
+                    <label for="timeRangeFilter">Time Range:</label>
+                    <select id="timeRangeFilter">
+                        <option value="">Custom Range</option>
+                        <option value="1m">Last 1 minute</option>
+                        <option value="5m">Last 5 minutes</option>
+                        <option value="10m">Last 10 minutes</option>
+                        <option value="30m">Last 30 minutes</option>
+                        <option value="1h">Last 1 hour</option>
+                        <option value="5h">Last 5 hours</option>
+                        <option value="24h">Last 24 hours</option>
+                        <option value="7d">Last 7 days</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="dateFrom">From:</label>
+                    <input type="datetime-local" id="dateFrom">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="dateTo">To:</label>
+                    <input type="datetime-local" id="dateTo">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="limitFilter">Limit:</label>
+                    <select id="limitFilter">
+                        <option value="50">50</option>
+                        <option value="100" selected>100</option>
+                        <option value="200">200</option>
+                        <option value="500">500</option>
+                    </select>
+                </div>            </div>
+            
+            <div class="actions">
+                <button id="filterBtn" class="btn btn-primary filter-btn-wide">
+                    <span class="material-icons">filter_list</span>
+                    Apply Filters
+                </button>
+            </div>
+        </div>
+        
+        <div class="stats" id="stats">
+            <div class="stat-item">
+                <span class="stat-label">Total:</span>
+                <span class="stat-value" id="totalLogs">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Page:</span>
+                <span class="stat-value" id="currentPage">1</span>
+                <span class="stat-label">of</span>
+                <span class="stat-value" id="totalPages">1</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Alerts:</span>
+                <span class="stat-value alert-count" id="alertCount">0</span>
+            </div>
+        </div>
+        
+        <div class="logs-container">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <span>Loading logs...</span>
+            </div>
+              <div id="noLogs" class="no-logs" style="display: none;">
+                <span class="material-icons no-logs-icon">inbox</span>
+                <h3>No logs found</h3>
+                <p>Try adjusting your filters or check back later.</p>
+            </div>
+            
+            <div id="logsTable" class="logs-table">
+                <div class="table-header">
+                    <div class="col-timestamp">Timestamp</div>
+                    <div class="col-level">Level</div>
+                    <div class="col-source">Source</div>
+                    <div class="col-group">Group</div>
+                    <div class="col-action">Action</div>
+                    <div class="col-message">Message</div>
+                    <div class="col-details">Details</div>
+                </div>
+                <div id="logsBody" class="table-body">
+                    <!-- Logs will be inserted here -->
+                </div>
+            </div>
+        </div>
+          <div class="pagination" id="pagination">
+            <button id="prevBtn" class="btn btn-outline">
+                <span class="material-icons">chevron_left</span>
+                Previous
+            </button>
+            <span id="pageInfo" class="page-info">Page 1 of 1</span>
+            <button id="nextBtn" class="btn btn-outline">
+                Next
+                <span class="material-icons">chevron_right</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal for log details -->
+    <div id="logModal" class="modal">
+        <div class="modal-content">            <div class="modal-header">
+                <h3>Log Details</h3>
+                <button class="modal-close" id="modalClose">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Log details will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
