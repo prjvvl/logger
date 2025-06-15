@@ -4,15 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Logger Dashboard</title>
-    <link rel="stylesheet" href="style-simple.css">
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 </head>
 <body>
     <div class="container">        <header>
-            <h1>Logger Dashboard</h1>
+            <h1>Logger Dashboard</h1>            <button id="toggleFiltersBtn" class="btn btn-outline toggle-filters-btn">
+                <span class="material-icons">filter_list</span>
+            </button>
         </header>
         
-        <div class="controls">
+        <div class="controls" id="filtersContainer">
             <div class="filters">
                 <div class="filter-group">
                     <label for="sourceFilter">Source:</label>
@@ -46,14 +48,13 @@
                     <select id="groupFilter">
                         <option value="">All Groups</option>
                     </select>                </div>
-                
-                <div class="filter-group">
+                  <div class="filter-group">
                     <label for="timeRangeFilter">Time Range:</label>
                     <select id="timeRangeFilter">
                         <option value="">Custom Range</option>
                         <option value="1m">Last 1 minute</option>
                         <option value="5m">Last 5 minutes</option>
-                        <option value="10m">Last 10 minutes</option>
+                        <option value="10m" selected>Last 10 minutes</option>
                         <option value="30m">Last 30 minutes</option>
                         <option value="1h">Last 1 hour</option>
                         <option value="5h">Last 5 hours</option>
@@ -118,15 +119,13 @@
                 <p>Try adjusting your filters or check back later.</p>
             </div>
             
-            <div id="logsTable" class="logs-table">
-                <div class="table-header">
+            <div id="logsTable" class="logs-table">                <div class="table-header">
                     <div class="col-timestamp">Timestamp</div>
                     <div class="col-level">Level</div>
                     <div class="col-source">Source</div>
                     <div class="col-group">Group</div>
                     <div class="col-action">Action</div>
                     <div class="col-message">Message</div>
-                    <div class="col-details">Details</div>
                 </div>
                 <div id="logsBody" class="table-body">
                     <!-- Logs will be inserted here -->

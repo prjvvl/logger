@@ -35,16 +35,24 @@ class LoggerDashboard {
         this.currentPageSpan = document.getElementById('currentPage');
         this.totalPages = document.getElementById('totalPages');
         this.alertCount = document.getElementById('alertCount');
-        this.pageInfo = document.getElementById('pageInfo');
-
-        // Modal elements
+        this.pageInfo = document.getElementById('pageInfo');        // Modal elements
         this.modal = document.getElementById('logModal');
         this.modalClose = document.getElementById('modalClose');
-        this.modalBody = document.getElementById('modalBody');
+        this.modalBody = document.getElementById('modalBody');        // Toggle elements
+        this.toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
+        this.filtersContainer = document.getElementById('filtersContainer');
+        this.filtersVisible = false;
+        
+        // Initialize filters container as hidden
+        this.filtersContainer.classList.add('hidden');
+        this.toggleFiltersBtn.classList.add('collapsed');
     }    attachEventListeners() {
         this.filterBtn.addEventListener('click', () => this.applyFilters());
         this.prevBtn.addEventListener('click', () => this.previousPage());
         this.nextBtn.addEventListener('click', () => this.nextPage());
+        
+        // Toggle filters button
+        this.toggleFiltersBtn.addEventListener('click', () => this.toggleFilters());
         
         // Modal events
         this.modalClose.addEventListener('click', () => this.closeModal());
@@ -63,14 +71,26 @@ class LoggerDashboard {
                 this.timeRangeFilter.value = '';
             });
         });
-    }
-
-    async loadInitialData() {
+    }    async loadInitialData() {
+        // First, load filters from URL parameters
+        this.loadFiltersFromUrl();
+        
+        // If no URL parameters, set defaults
+        if (!new URLSearchParams(window.location.search).has('timeRange')) {
+            this.timeRangeFilter.value = '10m';
+            this.handleTimeRangeChange();
+        }
+        if (!new URLSearchParams(window.location.search).has('limit')) {
+            this.limitFilter.value = '100';
+        }
+        
         await Promise.all([
             this.loadSources(),
-            this.loadGroups(),
-            this.loadLogs()
+            this.loadGroups()
         ]);
+        
+        // Apply the filters to load filtered data
+        this.applyFilters();
     }
 
     async loadSources() {
@@ -183,29 +203,18 @@ class LoggerDashboard {
         
         const timestamp = new Date(log.timestamp).toLocaleString();
         const actionText = log.action === 'alert' ? 'Alert' : 'Regular';
-        const actionClass = log.action === 'alert' ? 'alert' : 'regular';
-        
-        row.innerHTML = `
-            <div class="log-timestamp" data-label="Time">${timestamp}</div>
-            <div class="log-level ${log.level}" data-label="Level">${log.level}</div>
-            <div class="log-source" data-label="Source">${log.source}</div>
-            <div class="log-group" data-label="Group">${log.group}</div>
-            <div class="log-action ${actionClass}" data-label="Action">${actionText}</div>
-            <div class="log-message" data-label="Message">${this.escapeHtml(log.message)}</div>            <div data-label="Details">
-                <button class="log-details-btn" title="View Details">
-                    <span class="material-icons">visibility</span>
-                </button>
+        const actionClass = log.action === 'alert' ? 'alert' : 'regular';        row.innerHTML = `
+            <div class="col-timestamp" data-label="Time">${timestamp}</div>
+            <div class="col-level ${log.level}" data-label="Level">${log.level}</div>
+            <div class="col-message" data-label="Message">${this.escapeHtml(log.message)}</div>
+            <div class="col-metadata">
+                <div class="col-source" data-label="Source">${log.source}</div>
+                <div class="col-group" data-label="Group">${log.group}</div>
+                <div class="col-action ${actionClass}" data-label="Action" data-action="${log.action || 'regular'}">${actionText}</div>
             </div>
         `;
-        
-        // Add click handler for details button
-        const detailsBtn = row.querySelector('.log-details-btn');
-        detailsBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.showLogDetails(log);
-        });
-        
-        // Add click handler for row
+
+        // Add click handler for row to show details
         row.addEventListener('click', () => this.showLogDetails(log));
         
         return row;
@@ -333,9 +342,7 @@ class LoggerDashboard {
         const hours = String(date.getHours()).padStart(2, '0');
         const minutes = String(date.getMinutes()).padStart(2, '0');
         return `${year}-${month}-${day}T${hours}:${minutes}`;
-    }
-
-    applyFilters() {
+    }    applyFilters() {
         this.currentFilters = {};
         
         if (this.sourceFilter.value) this.currentFilters.source = this.sourceFilter.value;
@@ -346,20 +353,78 @@ class LoggerDashboard {
         if (this.dateTo.value) this.currentFilters.end_date = new Date(this.dateTo.value).toISOString();
         
         this.currentPage = 1;
-        this.loadLogs();    }
+        this.loadLogs();
+        
+        // Hide filters after applying
+        if (this.filtersVisible) {
+            this.toggleFilters();
+        }
+        
+        this.updateUrlParams();
+    }
 
-    // clearFilters method removed - button was removed from UI
+    updateUrlParams() {
+        const url = new URL(window.location);
+        const params = url.searchParams;
+        
+        // Clear existing filter params
+        params.delete('source');
+        params.delete('level');
+        params.delete('action');
+        params.delete('group');
+        params.delete('timeRange');
+        params.delete('dateFrom');
+        params.delete('dateTo');
+        params.delete('limit');
+        params.delete('page');
+        
+        // Add current filter values
+        if (this.sourceFilter.value) params.set('source', this.sourceFilter.value);
+        if (this.levelFilter.value) params.set('level', this.levelFilter.value);
+        if (this.actionFilter.value) params.set('action', this.actionFilter.value);
+        if (this.groupFilter.value) params.set('group', this.groupFilter.value);
+        if (this.timeRangeFilter.value) params.set('timeRange', this.timeRangeFilter.value);
+        if (this.dateFrom.value) params.set('dateFrom', this.dateFrom.value);
+        if (this.dateTo.value) params.set('dateTo', this.dateTo.value);
+        if (this.limitFilter.value && this.limitFilter.value !== '100') params.set('limit', this.limitFilter.value);
+        if (this.currentPage > 1) params.set('page', this.currentPage.toString());
+        
+        // Update URL without page reload
+        window.history.replaceState({}, '', url.toString());
+    }
+
+    loadFiltersFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        
+        // Set filter values from URL parameters
+        if (params.get('source')) this.sourceFilter.value = params.get('source');
+        if (params.get('level')) this.levelFilter.value = params.get('level');
+        if (params.get('action')) this.actionFilter.value = params.get('action');
+        if (params.get('group')) this.groupFilter.value = params.get('group');
+        if (params.get('timeRange')) this.timeRangeFilter.value = params.get('timeRange');
+        if (params.get('dateFrom')) this.dateFrom.value = params.get('dateFrom');
+        if (params.get('dateTo')) this.dateTo.value = params.get('dateTo');
+        if (params.get('limit')) this.limitFilter.value = params.get('limit');
+        if (params.get('page')) this.currentPage = parseInt(params.get('page')) || 1;
+        
+        // If timeRange is set, handle it to set date fields
+        if (this.timeRangeFilter.value) {
+            this.handleTimeRangeChange();
+        }
+    }    // clearFilters method removed - button was removed from UI
     // exportLogs method removed - button was removed from UI
 
     previousPage() {
         if (this.currentPage > 1) {
             this.currentPage--;
+            this.updateUrlParams();
             this.loadLogs();
         }
     }
 
     nextPage() {
         this.currentPage++;
+        this.updateUrlParams();
         this.loadLogs();
     }
 
@@ -390,6 +455,17 @@ class LoggerDashboard {
             if (noLogsDesc) {
                 noLogsDesc.textContent = message;
             }
+        }    }    toggleFilters() {
+        this.filtersVisible = !this.filtersVisible;
+        
+        if (this.filtersVisible) {
+            this.filtersContainer.classList.remove('hidden');
+            this.filtersContainer.classList.add('visible');
+            this.toggleFiltersBtn.classList.remove('collapsed');
+        } else {
+            this.filtersContainer.classList.remove('visible');
+            this.filtersContainer.classList.add('hidden');
+            this.toggleFiltersBtn.classList.add('collapsed');
         }
     }
 
