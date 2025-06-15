@@ -14,14 +14,15 @@ class LoggerServer {
   private app: express.Application;
   private config: ConfigManager;
   private storage: LogStorage;
-  private alertManager: AlertManager;
-  private port: number;
-  constructor() {
+  private alertManager: AlertManager;  private port: number;
+  private host: string;
+    constructor() {
     this.app = express();
     this.config = ConfigManager.getInstance();
     this.storage = new LogStorage();
     this.alertManager = new AlertManager();
     this.port = parseInt(process.env.PORT || '0') || this.config.getAppConfig().port;
+    this.host = process.env.HOST || this.config.getAppConfig().host || '127.0.0.1'; // Default to localhost for development
 
     this.setupMiddleware();
     this.setupRoutes();
@@ -232,12 +233,16 @@ class LoggerServer {
       } as ApiResponse);
     }
   }
-
   public start(): void {
-    this.app.listen(this.port, () => {
-      console.log(`Logger server running on port ${this.port}`);
-      console.log(`Health check: http://localhost:${this.port}/health`);
-      console.log(`Web interface: http://localhost:${this.port}`);
+    this.app.listen(this.port, this.host, () => {
+      console.log(`Logger server running on ${this.host}:${this.port}`);
+      console.log(`Health check: http://${this.host}:${this.port}/health`);
+      console.log(`Web interface: http://${this.host}:${this.port}`);
+      
+      if (this.host === '0.0.0.0') {
+        console.log(`Server is publicly accessible on all network interfaces`);
+        console.log(`Local access: http://localhost:${this.port}`);
+      }
     });
   }
 }

@@ -31,6 +31,7 @@ export class ConfigManager {
     // Load from environment variables only
     this.appConfig = {
       port: parseInt(process.env.PORT || '3000'),
+      host: process.env.HOST, // Optional - will default to 127.0.0.1 in server
       logs_directory: process.env.LOGS_DIRECTORY || './logs',
       max_log_file_size: process.env.MAX_LOG_FILE_SIZE || '10MB',
       log_retention_days: parseInt(process.env.LOG_RETENTION_DAYS || '30'),

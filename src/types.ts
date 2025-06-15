@@ -27,6 +27,7 @@ export interface AuthTokens {
 
 export interface AppConfig {
   port: number;
+  host?: string;
   logs_directory: string;
   max_log_file_size: string;
   log_retention_days: number;
